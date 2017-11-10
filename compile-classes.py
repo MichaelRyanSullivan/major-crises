@@ -2,8 +2,10 @@
     and compiles a list of classes required to declare each
     major. """
 import sys
+from bs4 import BeautifulSoup as bs
+import requests as req
 
-URL = http://guide.berkeley.edu/undergraduate/degree-programs/
+URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
 
 def main():
     """Main entry point for script."""
@@ -18,6 +20,10 @@ def main():
 def get_major_links(url):
     """Returns a dictionary mapping major names to
     the URL to their courses page."""
+    soup = bs(req.get(url))
+    soup.prettify
+    print(soup.prettify)
+
     pass
 
 def get_major_prereqs(url):
