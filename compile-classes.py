@@ -31,7 +31,7 @@ def get_major_links(url):
     assert(len(names) == len(urls))
     d = {}
     for i in range(len(names)):
-        d[names[i]] = urls[i]
+        d[names[i]] = URL + "/" + urls[i] + "/"
 
     return d
 
