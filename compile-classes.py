@@ -17,7 +17,6 @@ URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
 #         prereqs = get_major_prereqs(url)
 #         major_prereqs[major] = prereqs
 #     pass
-
 def get_major_links(url):
     """Returns a dictionary mapping major names to
     the URL to their courses page."""
