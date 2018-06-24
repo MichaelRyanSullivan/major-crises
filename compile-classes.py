@@ -9,19 +9,25 @@ import sys
 from bs4 import BeautifulSoup as bs
 import requests as req
 import re
+try:
+    import _pickle as pickle
+except:
+    import pickle
+
+
 
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
-def main():
-    """Main entry point for script."""
-    major_links = get_major_links(URL)
-    print(major_links)
+# def main():
+#     """Main entry point for script."""
+#     major_links = get_major_links(URL)
+#     print(major_links)
     #Maps majors to a list of classes that fulfill requirements.
-    major_classes = dict()
-    for major in major_links:
-        url = major_links[major]
-        major_classes[major] = get_major_classes(url)
-    write_to_file(major_classes)
-    pass
+    # major_classes = dict()
+    # for major in major_links:
+    #     url = major_links[major]
+    #     major_classes[major] = get_major_classes(url)
+    # write_to_file(major_classes)
+
 
 def get_major_links(url):
     """Returns a dictionary mapping major names to
@@ -85,6 +91,12 @@ def write_to_file(major_classes):
                 _file.write(" " + req)
             _file.write("\n")
 
-main()
-if __name__ == '__main__':
-    sys.exit(main)
+def read_from_file():
+    """Reads requirements from major_requirements.txt and returns a dictionary
+    """
+
+major_links = get_major_links(URL)
+
+# main()
+# if __name__ == '__main__':
+#     sys.exit(main)
