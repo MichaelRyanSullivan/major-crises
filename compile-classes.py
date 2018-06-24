@@ -17,17 +17,19 @@ except:
 
 
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
-# def main():
-#     """Main entry point for script."""
-#     major_links = get_major_links(URL)
-#     print(major_links)
-    #Maps majors to a list of classes that fulfill requirements.
-    # major_classes = dict()
-    # for major in major_links:
-    #     url = major_links[major]
-    #     major_classes[major] = get_major_classes(url)
-    # write_to_file(major_classes)
+dept_dict = {}
+def main():
+    """Main entry point for script."""
+    major_links = get_major_links(URL)
 
+    #Maps majors to a list of classes that fulfill requirements.
+    major_classes = dict()
+    for major in major_links:
+        url = major_links[major]
+        major_classes[major] = get_major_classes(url)
+    _file = open('data/major_classes', 'bt')
+    pickle.dump(major_classes, _file)
+    pass
 
 def get_major_links(url):
     """Returns a dictionary mapping major names to
@@ -53,6 +55,7 @@ def get_major_classes(url):
     """Takes a single major's web page and returns a list
     of the classes that count toward the major."""
     classes = []
+    print('hi')
     soup = bs(req.get(url).text, "html.parser")
     bubble_classes = soup.find_all("a", class_="bubblelink code")
     # p_class = re.compile("showCourse\(this, '([A-Z ]+ *[A-Z]*[0-9]+[A-Z]*)'\)")
@@ -64,20 +67,32 @@ def get_major_classes(url):
     for bubble in bubble_classes:
         m = p_class.search(str(bubble))
         _class = m.group(1)
-        print(repr(_class))
+        # print(repr(_class))
         _class = _class.replace(u'\xa0', u' ')
         _class = _class.replace(u'&amp;', u'&')
         num_match = p_num.match(_class)
         if num_match:
-            print(prev)
+            #for the case where classes are listed like: PHYSICS 7A 7B 7C
             num = num_match.group().strip()
             prev_name_match = p_name.match(prev)
             prev_name = prev_name_match.group().strip()
             _class = prev_name + " " + num
         if _class not in classes:
             classes.append(_class)
+            #adding department to department dictionary
+            """FINISH THIS - need to access the html block that holds the full dept. name """
+            name_match = p_name.match(_class)
+            dept_name = name_match.group().strip()
+            print(dept_name)
             prev = _class
     return classes
+
+def add_dept(dept_abrev):
+    """Takes a department name (format: LETTERS NUMBER) and returns the
+    full UC Berkeley department name corresponding to that abbrev.
+    EXAMPLE: dept_abv('CS 188') returns 'Computer Science'
+    """
+    pass
 
 def write_to_file(major_classes):
     """Takes a dictionary of majors to a list of classes that fulfill
@@ -95,8 +110,7 @@ def read_from_file():
     """Reads requirements from major_requirements.txt and returns a dictionary
     """
 
-major_links = get_major_links(URL)
-
+main()
 # main()
 # if __name__ == '__main__':
 #     sys.exit(main)
