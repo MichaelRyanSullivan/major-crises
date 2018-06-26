@@ -121,15 +121,19 @@ def add_dept(course_tag):
                     <div class="course-section">
                         <p> ... </p>
     """
-    p_dept = re.compile('"(.*)"/Undergraduate')
+    p_dept = re.compile("'(.*)/Undergraduate'")
     for course_section in course_tag.find_all('div', class_="course-section"):
-        print(course_section.stripped_strings)
-        print("\n \n \n")
-        sys.exit(main)
-        dept = course_section.find(p_dept)
-        if dept is not None:
-            dept = str(dept).strip()
-            print(dept)
+        for string in course_section.stripped_strings:
+            string = repr(string)
+            dept_match = p_dept.match(string)
+            if dept_match:
+                dept = dept_match.group(1)
+                print(dept)
+        # dept = course_section.find(p_dept)
+        # if dept is not None:
+        #     dept = str(dept).strip()
+        #     print(dept)
+    sys.exit(main)
     return
 
 # def write_to_file(major_classes):
