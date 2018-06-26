@@ -48,44 +48,67 @@ def get_major_links(url):
     assert(len(names) == len(urls))
     d = {}
     for i in range(len(names)):
-        d[names[i]] = URL + urls[i] + "/"
+        d[names[i]] = url + urls[i] + "/"
     return d
 
+# def get_major_classes(url):
+#     """Takes a single major's web page and returns a list
+#     of the classes that count toward the major."""
+#     classes = []
+#     print('hi')
+#     soup = bs(req.get(url).text, "html.parser")
+#     bubble_classes = soup.find_all("a", class_="bubblelink code")
+#     # p_class = re.compile("showCourse\(this, '([A-Z ]+ *[A-Z]*[0-9]+[A-Z]*)'\)")
+#     # p_class = re.compile("showCourse\(this, '(.*)'")
+#     p_class = re.compile('href=".*">(.*)</a>')
+#     p_num = re.compile(" *([A-Z]*[0-9]+[A-Z]*)")
+#     p_name = re.compile("(([A-Z\/]+) )+")
+#     prev = ""
+#     for bubble in bubble_classes:
+#         m = p_class.search(str(bubble))
+#         _class = m.group(1)
+#         # print(repr(_class))
+#         _class = _class.replace(u'\xa0', u' ')
+#         _class = _class.replace(u'&amp;', u'&')
+#         num_match = p_num.match(_class)
+#         if num_match:
+#             #for the case where classes are listed like: PHYSICS 7A 7B 7C
+#             num = num_match.group().strip()
+#             prev_name_match = p_name.match(prev)
+#             prev_name = prev_name_match.group().strip()
+#             _class = prev_name + " " + num
+#         if _class not in classes:
+#             classes.append(_class)
+#             #adding department to department dictionary
+#             """FINISH THIS - need to access the html block that holds the full dept. name """
+#             name_match = p_name.match(_class)
+#             dept_name = name_match.group().strip()
+#             print(dept_name)
+#             prev = _class
+#     return classes
+anthro = 'http://guide.berkeley.edu/undergraduate/degree-programs/anthropology/'
 def get_major_classes(url):
     """Takes a single major's web page and returns a list
-    of the classes that count toward the major."""
-    classes = []
+        of the classes that count toward the major."""
+    course_codes = []
     print('hi')
     soup = bs(req.get(url).text, "html.parser")
-    bubble_classes = soup.find_all("a", class_="bubblelink code")
-    # p_class = re.compile("showCourse\(this, '([A-Z ]+ *[A-Z]*[0-9]+[A-Z]*)'\)")
-    # p_class = re.compile("showCourse\(this, '(.*)'")
-    p_class = re.compile('href=".*">(.*)</a>')
+    #// FIXME do I need these re's?
+    p_class = re.compile('<span class="code">(.*)<\/span>')
     p_num = re.compile(" *([A-Z]*[0-9]+[A-Z]*)")
     p_name = re.compile("(([A-Z\/]+) )+")
     prev = ""
-    for bubble in bubble_classes:
-        m = p_class.search(str(bubble))
-        _class = m.group(1)
-        # print(repr(_class))
-        _class = _class.replace(u'\xa0', u' ')
-        _class = _class.replace(u'&amp;', u'&')
-        num_match = p_num.match(_class)
-        if num_match:
-            #for the case where classes are listed like: PHYSICS 7A 7B 7C
-            num = num_match.group().strip()
-            prev_name_match = p_name.match(prev)
-            prev_name = prev_name_match.group().strip()
-            _class = prev_name + " " + num
-        if _class not in classes:
-            classes.append(_class)
-            #adding department to department dictionary
-            """FINISH THIS - need to access the html block that holds the full dept. name """
-            name_match = p_name.match(_class)
-            dept_name = name_match.group().strip()
-            print(dept_name)
-            prev = _class
-    return classes
+    courseblocks = soup.find_all('div', class_='courseblock')
+    for course_tag in courseblocks:
+        course_code = course_tag.find('span', class_='code').contents[0]
+        course_code = course_code.replace(u'\xa0', u' ')
+        course_code = course_code.replace(u'&amp;', u'&')
+        if course_code not in course_codes:
+            course_codes.append(course_code)
+        ## TODO: MAKE A "COURSE" CLASS TO HOLD MORE INFO.
+        couse_name_full = course_tag.find('span', class_='title').contents[0]
+        course_units = course_tag.find('span', class_='hours').contents[0]
+    return course_codes
 
 def add_dept(dept_abrev):
     """Takes a department name (format: LETTERS NUMBER) and returns the
@@ -111,6 +134,5 @@ def read_from_file():
     """
 
 main()
-# main()
 # if __name__ == '__main__':
 #     sys.exit(main)
