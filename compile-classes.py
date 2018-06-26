@@ -27,7 +27,7 @@ def main():
     for major in major_links:
         url = major_links[major]
         major_classes[major] = get_major_classes(url)
-    _file = open('data/major_classes', 'bt')
+    _file = open('data/major_classes', 'wb')
     pickle.dump(major_classes, _file)
     pass
 
@@ -117,17 +117,17 @@ def add_dept(dept_abrev):
     """
     pass
 
-def write_to_file(major_classes):
-    """Takes a dictionary of majors to a list of classes that fulfill
-       requirements, MAJOR_CLASSES, and writes those requirements to
-       a file in the repository."""
-    with open('major_requirements.txt', 'wt+') as _file:
-        for major in major_classes:
-            _file.write(major + ";")
-            reqs = major_classes[major]
-            for req in reqs:
-                _file.write(" " + req)
-            _file.write("\n")
+# def write_to_file(major_classes):
+#     """Takes a dictionary of majors to a list of classes that fulfill
+#        requirements, MAJOR_CLASSES, and writes those requirements to
+#        a file in the repository."""
+#     with open('major_requirements.txt', 'wt+') as _file:
+#         for major in major_classes:
+#             _file.write(major + ";")
+#             reqs = major_classes[major]
+#             for req in reqs:
+#                 _file.write(" " + req)
+#             _file.write("\n")
 
 def read_from_file():
     """Reads requirements from major_requirements.txt and returns a dictionary
