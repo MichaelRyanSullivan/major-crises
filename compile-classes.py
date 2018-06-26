@@ -1,8 +1,6 @@
 """ Script to parse through the UC Berkeley majors page,
     and compiles a list of classes required to declare each
-    major. Writes a file to the repository of the format:
-    MAJOR1 CLASS1 CLASS2...
-    MAJOR2 CLASS1 ....
+    major. Serializes the resultant dictionary in data/
     ...
     """
 import sys
@@ -14,7 +12,7 @@ try:
 except:
     import pickle
 
-
+#// TODO differentiate between majors/minors
 
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
 dept_dict = {}
@@ -27,8 +25,8 @@ def main():
     for major in major_links:
         url = major_links[major]
         major_classes[major] = get_major_classes(url)
-    _file = open('data/major_classes', 'wb')
-    pickle.dump(major_classes, _file)
+    # _file = open('data/major_classes', 'wb')
+    # pickle.dump(major_classes, _file)
     pass
 
 def get_major_links(url):
@@ -100,6 +98,7 @@ def get_major_classes(url):
     prev = ""
     courseblocks = soup.find_all('div', class_='courseblock')
     for course_tag in courseblocks:
+        add_dept(course_tag)
         course_code = course_tag.find('span', class_='code').contents[0]
         course_code = course_code.replace(u'\xa0', u' ')
         course_code = course_code.replace(u'&amp;', u'&')
@@ -110,12 +109,28 @@ def get_major_classes(url):
         course_units = course_tag.find('span', class_='hours').contents[0]
     return course_codes
 
-def add_dept(dept_abrev):
-    """Takes a department name (format: LETTERS NUMBER) and returns the
-    full UC Berkeley department name corresponding to that abbrev.
-    EXAMPLE: dept_abv('CS 188') returns 'Computer Science'
+
+
+def add_dept(course_tag):
+    """Takes a <div class="courseblock"'> bs4 tag object and adds a
+    mapping from the dept. abbreviation of the course to the full dept.
+    name. Coursetag has the following children path to the info:
+        <div class="courseblock">
+            <div class="coursebody">
+                <div class="coursedetails">
+                    <div class="course-section">
+                        <p> ... </p>
     """
-    pass
+    p_dept = re.compile('"(.*)"/Undergraduate')
+    for course_section in course_tag.find_all('div', class_="course-section"):
+        print(course_section.stripped_strings)
+        print("\n \n \n")
+        sys.exit(main)
+        dept = course_section.find(p_dept)
+        if dept is not None:
+            dept = str(dept).strip()
+            print(dept)
+    return
 
 # def write_to_file(major_classes):
 #     """Takes a dictionary of majors to a list of classes that fulfill
