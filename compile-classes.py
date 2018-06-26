@@ -13,7 +13,7 @@ except:
     import pickle
 
 #// TODO differentiate between majors/minors
-
+i = 1
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
 dept_dict = {}
 def main():
@@ -25,8 +25,10 @@ def main():
     for major in major_links:
         url = major_links[major]
         major_classes[major] = get_major_classes(url)
-    # _file = open('data/major_classes', 'wb')
-    # pickle.dump(major_classes, _file)
+    _file = open('data/major_classes', 'wb')
+    pickle.dump(major_classes, _file)
+    _file = open('data/dept_dict', 'wb')
+    pickle.dump(dept_dict, _file)
     pass
 
 def get_major_links(url):
@@ -49,61 +51,33 @@ def get_major_links(url):
         d[names[i]] = url + urls[i] + "/"
     return d
 
-# def get_major_classes(url):
-#     """Takes a single major's web page and returns a list
-#     of the classes that count toward the major."""
-#     classes = []
-#     print('hi')
-#     soup = bs(req.get(url).text, "html.parser")
-#     bubble_classes = soup.find_all("a", class_="bubblelink code")
-#     # p_class = re.compile("showCourse\(this, '([A-Z ]+ *[A-Z]*[0-9]+[A-Z]*)'\)")
-#     # p_class = re.compile("showCourse\(this, '(.*)'")
-#     p_class = re.compile('href=".*">(.*)</a>')
-#     p_num = re.compile(" *([A-Z]*[0-9]+[A-Z]*)")
-#     p_name = re.compile("(([A-Z\/]+) )+")
-#     prev = ""
-#     for bubble in bubble_classes:
-#         m = p_class.search(str(bubble))
-#         _class = m.group(1)
-#         # print(repr(_class))
-#         _class = _class.replace(u'\xa0', u' ')
-#         _class = _class.replace(u'&amp;', u'&')
-#         num_match = p_num.match(_class)
-#         if num_match:
-#             #for the case where classes are listed like: PHYSICS 7A 7B 7C
-#             num = num_match.group().strip()
-#             prev_name_match = p_name.match(prev)
-#             prev_name = prev_name_match.group().strip()
-#             _class = prev_name + " " + num
-#         if _class not in classes:
-#             classes.append(_class)
-#             #adding department to department dictionary
-#             """FINISH THIS - need to access the html block that holds the full dept. name """
-#             name_match = p_name.match(_class)
-#             dept_name = name_match.group().strip()
-#             print(dept_name)
-#             prev = _class
-#     return classes
 anthro = 'http://guide.berkeley.edu/undergraduate/degree-programs/anthropology/'
 def get_major_classes(url):
     """Takes a single major's web page and returns a list
         of the classes that count toward the major."""
+    global i
     course_codes = []
-    print('hi')
+    print(i)
+    i +=1
     soup = bs(req.get(url).text, "html.parser")
     #// FIXME do I need these re's?
-    p_class = re.compile('<span class="code">(.*)<\/span>')
     p_num = re.compile(" *([A-Z]*[0-9]+[A-Z]*)")
-    p_name = re.compile("(([A-Z\/]+) )+")
-    prev = ""
+    p_name = re.compile("(([A-Z\/,-]+) )+")
     courseblocks = soup.find_all('div', class_='courseblock')
     for course_tag in courseblocks:
-        add_dept(course_tag)
         course_code = course_tag.find('span', class_='code').contents[0]
         course_code = course_code.replace(u'\xa0', u' ')
         course_code = course_code.replace(u'&amp;', u'&')
         if course_code not in course_codes:
             course_codes.append(course_code)
+        try:
+            dept_abbrev = p_name.match(course_code).group().strip()
+        except:
+            print(course_code)
+            sys.exit(main)
+        if dept_abbrev not in dept_dict:
+            add_dept(dept_abbrev, course_tag)
+
         ## TODO: MAKE A "COURSE" CLASS TO HOLD MORE INFO.
         couse_name_full = course_tag.find('span', class_='title').contents[0]
         course_units = course_tag.find('span', class_='hours').contents[0]
@@ -111,15 +85,16 @@ def get_major_classes(url):
 
 
 
-def add_dept(course_tag):
+def add_dept(dept_abbrev, course_tag):
     """Takes a <div class="courseblock"'> bs4 tag object and adds a
-    mapping from the dept. abbreviation of the course to the full dept.
-    name. Coursetag has the following children path to the info:
+    mapping from the dept. abbreviation, DEPT_NAME, of the course to
+    the full dept. name. Coursetag has the following children path:
         <div class="courseblock">
             <div class="coursebody">
                 <div class="coursedetails">
                     <div class="course-section">
                         <p> ... </p>
+    Returns True if successfully added, False otherwise.
     """
     p_dept = re.compile("'(.*)/Undergraduate'")
     for course_section in course_tag.find_all('div', class_="course-section"):
@@ -127,14 +102,11 @@ def add_dept(course_tag):
             string = repr(string)
             dept_match = p_dept.match(string)
             if dept_match:
-                dept = dept_match.group(1)
-                print(dept)
-        # dept = course_section.find(p_dept)
-        # if dept is not None:
-        #     dept = str(dept).strip()
-        #     print(dept)
-    sys.exit(main)
-    return
+                dept_full = dept_match.group(1)
+                dept_dict[dept_abbrev] = dept_full
+                print(dept_dict)
+                return True
+    return False
 
 # def write_to_file(major_classes):
 #     """Takes a dictionary of majors to a list of classes that fulfill
