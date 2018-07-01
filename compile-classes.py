@@ -7,20 +7,34 @@ import sys
 from bs4 import BeautifulSoup as bs
 import requests as req
 import re
-try:
-    import _pickle as pickle
-except:
-    import pickle
+import _pickle as pickle
 
-#// TODO differentiate between majors/minors
+
+# TODO differentiate between majors/minors
 i = 1
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
 dept_dict = {}
+
+
+class Major:
+    # FIXME. Thinking: course objects (list), link to website,
+    # some other info?
+    def __init__(self, courses, link):
+        self.courses = courses
+        self.link = link
+
+
+class Course:
+    # FIXME. Thinking: abbrev, full_name, units
+    def __init__(self, abbrev, full_name, units):
+        self.abbrev = abbrev
+        self.full_name = full_name 
+        self.units = units
+
 def main():
     """Main entry point for script."""
-    major_links = get_major_links(URL)
-
-    #Maps majors to a list of classes that fulfill requirements.
+    major_links = fill_major_links(URL)
+    # Maps majors to a list of classes that fulfill requirements.
     major_classes = dict()
     for major in major_links:
         url = major_links[major]
@@ -31,9 +45,11 @@ def main():
     pickle.dump(dept_dict, _file)
     pass
 
-def get_major_links(url):
-    """Returns a dictionary mapping major names to
-    the URL to their courses page."""
+
+def fill_major_links(url):
+    """Returns a list of Major objects corresponding to each
+    major with the links added to the major's website for each
+    object. """
     soup = bs(req.get(url).text, "html.parser")
     scripts = soup.find_all('script')
     strScript = ''
@@ -51,17 +67,16 @@ def get_major_links(url):
         d[names[i]] = url + urls[i] + "/"
     return d
 
-anthro = 'http://guide.berkeley.edu/undergraduate/degree-programs/anthropology/'
+
 def get_major_classes(url):
     """Takes a single major's web page and returns a list
         of the classes that count toward the major."""
     global i
     course_codes = []
     print(i)
-    i +=1
+    i += 1
     soup = bs(req.get(url).text, "html.parser")
-    #// FIXME do I need these re's?
-    p_num = re.compile(" *([A-Z]*[0-9]+[A-Z]*)")
+    # FIXME do I need these re's?
     p_name = re.compile("(([A-Z\/,-]+) )+")
     courseblocks = soup.find_all('div', class_='courseblock')
     for course_tag in courseblocks:
@@ -70,19 +85,14 @@ def get_major_classes(url):
         course_code = course_code.replace(u'&amp;', u'&')
         if course_code not in course_codes:
             course_codes.append(course_code)
-        try:
             dept_abbrev = p_name.match(course_code).group().strip()
-        except:
-            print(course_code)
-            sys.exit(main)
         if dept_abbrev not in dept_dict:
             add_dept(dept_abbrev, course_tag)
 
-        ## TODO: MAKE A "COURSE" CLASS TO HOLD MORE INFO.
-        couse_name_full = course_tag.find('span', class_='title').contents[0]
-        course_units = course_tag.find('span', class_='hours').contents[0]
+        # TODO: MAKE A "COURSE" CLASS TO HOLD MORE INFO.
+        # couse_name_full = course_tag.find('span', class_='title').contents[0]
+        # course_units = course_tag.find('span', class_='hours').contents[0]
     return course_codes
-
 
 
 def add_dept(dept_abbrev, course_tag):
@@ -108,22 +118,6 @@ def add_dept(dept_abbrev, course_tag):
                 return True
     return False
 
-# def write_to_file(major_classes):
-#     """Takes a dictionary of majors to a list of classes that fulfill
-#        requirements, MAJOR_CLASSES, and writes those requirements to
-#        a file in the repository."""
-#     with open('major_requirements.txt', 'wt+') as _file:
-#         for major in major_classes:
-#             _file.write(major + ";")
-#             reqs = major_classes[major]
-#             for req in reqs:
-#                 _file.write(" " + req)
-#             _file.write("\n")
 
-def read_from_file():
-    """Reads requirements from major_requirements.txt and returns a dictionary
-    """
-
-main()
-# if __name__ == '__main__':
-#     sys.exit(main)
+if __name__ == '__main__':
+    sys.exit(main)
