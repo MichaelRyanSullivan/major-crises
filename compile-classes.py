@@ -48,8 +48,8 @@ class Major:
             # formatting the abbreviation uniformly
             course_code = course_code.replace(u'\xa0', u' ')
             course_code = course_code.replace(u'&amp;', u'&')
-            full_name = course_tag.find('span', class_='title').contents[0]
-            units = course_tag.find('span', class_='hours').contents[0]
+            full_name = str(course_tag.find('span', class_='title').contents[0])
+            units = str(course_tag.find('span', class_='hours').contents[0])
             course = Course(course_code, full_name, units)
             if not self.contains_course(course):
                 self.add_course(course)
@@ -73,7 +73,6 @@ class Course:
         return self.abbrev == other.abbrev
 
 
-
 def main():
     """Main entry point for script."""
     Majors = fill_major_links(URL)
@@ -82,8 +81,7 @@ def main():
     _file = open('data/major_classes', 'wb')
     for major in Majors:
         major.get_major_classes()
-        pickle.dump(major, _file, 4)
-#    pickle.dump(Majors, _file)
+    pickle.dump(Majors, _file)
     _file.close()
     _file = open('data/dept_dict', 'wb')
     pickle.dump(dept_dict, _file)
@@ -136,6 +134,7 @@ def add_dept(dept_abbrev, course_tag):
                 print(dept_dict)
                 return True
     return False
+
 
 main()
 # if __name__ == '__main__':
