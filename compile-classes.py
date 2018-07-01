@@ -19,30 +19,75 @@ dept_dict = {}
 class Major:
     # FIXME. Thinking: course objects (list), link to website,
     # some other info?
-    def __init__(self, courses, link):
-        self.courses = courses
+    def __init__(self, name, link):
+        self.Courses = []
+        self.name = name
         self.link = link
+    
+    def __str__(self):
+        return "Name: " + self.name + "\nLink: " + self.link + "Courses: " + str(self.Courses)
+
+    def contains_course(self, course):
+        return course in self.Courses
+
+    def add_course(self, Course):
+        assert Course not in self.Courses
+        self.Courses.append(Course)
+
+    def get_major_classes(self):
+        """Adds all Course objects corresponding to this Major. """
+        global i
+        print(i)
+        i += 1
+        url = self.link
+        soup = bs(req.get(url).text, "html.parser")
+        p_name = re.compile("(([A-Z\/,-]+) )+")
+        courseblocks = soup.find_all('div', class_='courseblock')
+        for course_tag in courseblocks:
+            course_code = course_tag.find('span', class_='code').contents[0]
+            # formatting the abbreviation uniformly
+            course_code = course_code.replace(u'\xa0', u' ')
+            course_code = course_code.replace(u'&amp;', u'&')
+            full_name = course_tag.find('span', class_='title').contents[0]
+            units = course_tag.find('span', class_='hours').contents[0]
+            course = Course(course_code, full_name, units)
+            if not self.contains_course(course):
+                self.add_course(course)
+                dept_abbrev = p_name.match(course_code).group().strip()
+                if dept_abbrev not in dept_dict:
+                    add_dept(dept_abbrev, course_tag)
+        return
 
 
 class Course:
     # FIXME. Thinking: abbrev, full_name, units
     def __init__(self, abbrev, full_name, units):
         self.abbrev = abbrev
-        self.full_name = full_name 
+        self.full_name = full_name
         self.units = units
+    
+    def __str__(self):
+        return "abbrev: " + self.abbrev + "\nfull name: " + self.full_name + "\nunits: " + self.units
+    
+    def __eq__(self, other):
+        return self.abbrev == other.abbrev
+
+
 
 def main():
     """Main entry point for script."""
-    major_links = fill_major_links(URL)
-    # Maps majors to a list of classes that fulfill requirements.
-    major_classes = dict()
-    for major in major_links:
-        url = major_links[major]
-        major_classes[major] = get_major_classes(url)
+    Majors = fill_major_links(URL)
+    sys.setrecursionlimit(50000)
+    # fills Major objects with corresponding Courses.
     _file = open('data/major_classes', 'wb')
-    pickle.dump(major_classes, _file)
+    for major in Majors:
+        major.get_major_classes()
+        pickle.dump(major, _file, 4)
+#    pickle.dump(Majors, _file)
+    _file.close()
     _file = open('data/dept_dict', 'wb')
     pickle.dump(dept_dict, _file)
+    _file.close()
     pass
 
 
@@ -62,37 +107,11 @@ def fill_major_links(url):
     names = p_name.findall(strScript)
     urls = p_url.findall(strScript)
     assert(len(names) == len(urls))
-    d = {}
+    Majors = []
     for i in range(len(names)):
-        d[names[i]] = url + urls[i] + "/"
-    return d
-
-
-def get_major_classes(url):
-    """Takes a single major's web page and returns a list
-        of the classes that count toward the major."""
-    global i
-    course_codes = []
-    print(i)
-    i += 1
-    soup = bs(req.get(url).text, "html.parser")
-    # FIXME do I need these re's?
-    p_name = re.compile("(([A-Z\/,-]+) )+")
-    courseblocks = soup.find_all('div', class_='courseblock')
-    for course_tag in courseblocks:
-        course_code = course_tag.find('span', class_='code').contents[0]
-        course_code = course_code.replace(u'\xa0', u' ')
-        course_code = course_code.replace(u'&amp;', u'&')
-        if course_code not in course_codes:
-            course_codes.append(course_code)
-            dept_abbrev = p_name.match(course_code).group().strip()
-        if dept_abbrev not in dept_dict:
-            add_dept(dept_abbrev, course_tag)
-
-        # TODO: MAKE A "COURSE" CLASS TO HOLD MORE INFO.
-        # couse_name_full = course_tag.find('span', class_='title').contents[0]
-        # course_units = course_tag.find('span', class_='hours').contents[0]
-    return course_codes
+        link = url + urls[i] + "/"
+        Majors.append(Major(names[i], link))
+    return Majors
 
 
 def add_dept(dept_abbrev, course_tag):
@@ -118,6 +137,6 @@ def add_dept(dept_abbrev, course_tag):
                 return True
     return False
 
-
-if __name__ == '__main__':
-    sys.exit(main)
+main()
+# if __name__ == '__main__':
+#     sys.exit(main)
