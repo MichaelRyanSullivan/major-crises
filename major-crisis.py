@@ -16,8 +16,8 @@ def main():
     # run-time list of Course objects taken by user.
     courses_taken = []
     # FIXME - get user input. this will be some kind of "while" loop.
-    course = "hello"
-    # FIXME
+    course_code = "CS 61A"
+    # FIXME - add to courses_taken, update 
 
     pass
 

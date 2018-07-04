@@ -11,7 +11,7 @@ import _pickle as pickle
 
 
 # TODO differentiate between majors/minors
-# TODO add major info? 
+# TODO add major info? - DEPARTMENT!
 i = 1
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
 MAJORS_PATH = "data/Majors"
@@ -26,12 +26,9 @@ Courses = []
 def main():
     """Main entry point for script."""
     Majors = fill_major_links(URL)
-    sys.setrecursionlimit(50000)
     # fills Major objects with corresponding Courses.
     for major in Majors:
         major.get_major_classes()
-    # FIXME: make a dictionary of class abbreviations / full names.
-    # FIXME: change MAJORS to contain a list of course abberviations.
     _file = open(MAJORS_PATH, 'wb')
     pickle.dump(Majors, _file)
     _file.close()
@@ -65,8 +62,6 @@ class Major:
     def get_major_classes(self):
         """Adds all Course objects corresponding to this Major. Also builds
         global COURSES list with Course objects. """
-        # FIXME - add course abbrevs instead of objects to this Major.
-        # FIXME - add Course objects to global Courses list.
         global Courses
         global i
         print(i)
