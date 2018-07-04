@@ -1,7 +1,7 @@
 """ Script to parse through the UC Berkeley majors page,
     and compiles a list of classes required to declare each
-    major. Serializes the resultant dictionary in data/
-    ...
+    major. Serializes the resultant dictionary in the data 
+    directory.
     """
 import sys
 from bs4 import BeautifulSoup as bs
@@ -11,37 +11,68 @@ import _pickle as pickle
 
 
 # TODO differentiate between majors/minors
+# TODO add major info? 
 i = 1
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
+MAJORS_PATH = "data/Majors"
+DEPTS_PATH = "data/Depts"
+COURSES_PATH = "data/Courses"
+# Maps department abbreviations to full names.
 dept_dict = {}
+# List of all unique Course objects.
+Courses = []
+
+
+def main():
+    """Main entry point for script."""
+    Majors = fill_major_links(URL)
+    sys.setrecursionlimit(50000)
+    # fills Major objects with corresponding Courses.
+    for major in Majors:
+        major.get_major_classes()
+    # FIXME: make a dictionary of class abbreviations / full names.
+    # FIXME: change MAJORS to contain a list of course abberviations.
+    _file = open(MAJORS_PATH, 'wb')
+    pickle.dump(Majors, _file)
+    _file.close()
+    _file = open(DEPTS_PATH, 'wb')
+    pickle.dump(dept_dict, _file)
+    _file.close()
+    _file = open(COURSES_PATH, 'wb')
+    pickle.dump(Courses, _file)
+    _file.close()
+    pass
 
 
 class Major:
-    # FIXME. Thinking: course objects (list), link to website,
-    # some other info?
     def __init__(self, name, link):
-        self.Courses = []
+        self.courses = []
         self.name = name
         self.link = link
     
     def __str__(self):
-        return "Name: " + self.name + "\nLink: " + self.link + "Courses: " + str(self.Courses)
+        return self.name
 
     def contains_course(self, course):
-        return course in self.Courses
+        # COURSE must be a proper course abbreviation.
+        return course in self.courses
 
-    def add_course(self, Course):
-        assert Course not in self.Courses
-        self.Courses.append(Course)
+    def add_course(self, course):
+        # COURSE must be a proper course abbreviation.
+        assert course not in self.courses
+        self.courses.append(course)
 
     def get_major_classes(self):
-        """Adds all Course objects corresponding to this Major. """
+        """Adds all Course objects corresponding to this Major. Also builds
+        global COURSES list with Course objects. """
+        # FIXME - add course abbrevs instead of objects to this Major.
+        # FIXME - add Course objects to global Courses list.
+        global Courses
         global i
         print(i)
         i += 1
         url = self.link
         soup = bs(req.get(url).text, "html.parser")
-        p_name = re.compile("(([A-Z\/,-]+) )+")
         courseblocks = soup.find_all('div', class_='courseblock')
         for course_tag in courseblocks:
             course_code = course_tag.find('span', class_='code').contents[0]
@@ -50,43 +81,32 @@ class Major:
             course_code = course_code.replace(u'&amp;', u'&')
             full_name = str(course_tag.find('span', class_='title').contents[0])
             units = str(course_tag.find('span', class_='hours').contents[0])
-            course = Course(course_code, full_name, units)
-            if not self.contains_course(course):
-                self.add_course(course)
-                dept_abbrev = p_name.match(course_code).group().strip()
+            if not self.contains_course(course_code):
+                # adds course code to this major
+                self.add_course(course_code)
+                course = Course(course_code, full_name, units)
+                if course not in Courses:
+                    # adds Course object to Courses
+                    Courses.append(course)
+                dept_abbrev = isolate_dept(course_code)
                 if dept_abbrev not in dept_dict:
+                    # adds dept abbreviation to the dictionary
                     add_dept(dept_abbrev, course_tag)
         return
 
 
 class Course:
-    # FIXME. Thinking: abbrev, full_name, units
     def __init__(self, abbrev, full_name, units):
         self.abbrev = abbrev
         self.full_name = full_name
         self.units = units
+        self.dept = isolate_dept(abbrev)
     
     def __str__(self):
         return "abbrev: " + self.abbrev + "\nfull name: " + self.full_name + "\nunits: " + self.units
     
     def __eq__(self, other):
         return self.abbrev == other.abbrev
-
-
-def main():
-    """Main entry point for script."""
-    Majors = fill_major_links(URL)
-    sys.setrecursionlimit(50000)
-    # fills Major objects with corresponding Courses.
-    _file = open('data/major_classes', 'wb')
-    for major in Majors:
-        major.get_major_classes()
-    pickle.dump(Majors, _file)
-    _file.close()
-    _file = open('data/dept_dict', 'wb')
-    pickle.dump(dept_dict, _file)
-    _file.close()
-    pass
 
 
 def fill_major_links(url):
@@ -131,11 +151,20 @@ def add_dept(dept_abbrev, course_tag):
             if dept_match:
                 dept_full = dept_match.group(1)
                 dept_dict[dept_abbrev] = dept_full
-                print(dept_dict)
                 return True
     return False
 
 
-main()
-# if __name__ == '__main__':
-#     sys.exit(main)
+def isolate_dept(course_code):
+    # Takes a course abbreviation (i.e. CS 61A) and returns the department 
+    # abbreviation (i.e. CS)
+    # FIXME
+    p_dept_name = re.compile("(([A-Z\/,-]+) )+")
+    dept_abbrev = p_dept_name.match(course_code).group().strip()
+    return dept_abbrev
+
+
+
+
+if __name__ == '__main__':
+    main()
