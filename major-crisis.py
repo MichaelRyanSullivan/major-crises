@@ -3,6 +3,12 @@ compilation.py, takes user input, and filters against major/
 course list."""
 import _pickle as pickle
 import compilation
+import cmd
+
+
+class CousrePrompt(cmd.Cmd):
+    """Prototype command processor.
+    Commands: add (course), remove (course), results """
 
 
 def main():
@@ -29,7 +35,7 @@ def load_majors():
     Majors = pickle.load(_file)
     _file.close()
     return Majors
-   
+
 
 def load_depts():
     # Loads and returns the dictionary of department abbrevs.
@@ -38,6 +44,7 @@ def load_depts():
     Depts = pickle.load(_file)
     _file.close()
     return Depts
+
 
 def load_courses():
     # Loads and returns the list of Course objects from compilation.COURSES_PATH
@@ -51,9 +58,9 @@ def filter_course(majors, course_count, course):
     # Iterates through each Major object in MAJORS and adds one to the
     # corresponding COURSE_COUNT dict value if COURSE (a string) is a course 
     # in the Major object.
-    
     # FIXME
     pass
+
 
 def get_course_object(name):
     # FIXME - make this throw error "not a valid abbrevation".
