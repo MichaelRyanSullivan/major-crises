@@ -13,7 +13,7 @@ import _pickle as pickle
 # TODO add major info? - DEPARTMENT!
 i = 1
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
-SEARCH_URL = "guide.berkeley.edu/search"
+SEARCH_URL = "http://guide.berkeley.edu/"
 MAJORS_PATH = "data/Majors"
 DEPTS_PATH = "data/Depts"
 COURSES_PATH = "data/Courses"
@@ -69,28 +69,25 @@ class Major:
         soup = bs(req.get(self.link).text, "html.parser")
         bubblelinks = soup.find_all('a', class_='bubblelink')
         for bubble in bubblelinks:
-            course_code = bubble['title']
-            # formatting the abbreviation uniformly
-            course_code = course_code.replace(u'\xa0', u' ')
-            course_code = course_code.replace(u'&amp;', u'&')
+            course_code = format_abbrev(bubble['title'])
             # FIXME 
-            searchlink = SEARCH_URL + bubble['href']
-            # full_name = str(course_tag.find('span', class_='title').contents[0])
-            # units = str(course_tag.find('span', class_='hours').contents[0])
-            if not self.contains_course(course_code):
-                # adds course code to this major
+
+            if self.contains_course(course_code):
+                break
+            elif is_cached_course(course_code):
+                self.add(course_code)
+            else:
+                searchlink = SEARCH_URL + bubble['href']
                 self.add_course(course_code)
                 course = Course(course_code, searchlink)
-                if course not in Courses:
-                    # adds Course object to Courses
-                    Courses.append(course)
+                Courses.append(course)
         return
 
 
 class Course:
     def __init__(self, abbrev, searchlink):
         self.abbrev = abbrev
-        self.serachlink = searchlink
+        self.searchlink = searchlink
         self.units = ''
         self.full_name = ''
         self.dept = isolate_dept(abbrev)
@@ -103,13 +100,25 @@ class Course:
         return self.abbrev == other.abbrev
 
     def add_details(self):
+        print(self.abbrev)
+        print(self.searchlink)
         soup = bs(req.get(self.searchlink).text, "html.parser")
-        h2 = soup.find('div', class_='searchresult').h2.contents[0]
+        # h2 = soup.find('div', class_='searchresults').h2.contents[0]
+        results = soup.find_all('div', class_='searchresult')
         # pattern is [abbrev] \n[full name] \n[units]
         p_details = re.compile("(.*) \n(.*) \n([0-9]+ Units)")
-        m = p_details.match(h2)
-        self.full_name = m.group(1)
-        self.units = m.group(2)
+        for result in results:
+            h2 = str(result.h2.contents[0])
+            m = p_details.match(h2)
+            if m:
+                abbrev = format_abbrev(m.group(1))
+                if not abbrev == self.abbrev:
+                    break
+                self.full_name = m.group(2)
+                self.units = m.group(3)
+        # m = p_details.match(str(h2))
+        # self.full_name = m.group(2)
+        # self.units = m.group(3)
         # add full department name to Depts
         if self.dept not in Depts:
             courseblock = soup.find('div', class_='courseblock')
@@ -171,6 +180,29 @@ def isolate_dept(course_code):
     return dept_abbrev
 
 
+def format_abbrev(abbrev):
+    formatted = abbrev.replace(u'\xa0', u' ')
+    formatted = formatted.replace(u'&amp;', u'&')
+    return formatted
+
+
+def is_cached_course(name):
+    """checks NAME (str) against the list of courses COURSES to check if
+    any course has the name NAME. """
+    global Courses
+    for course in Courses:
+        if course.abbrev == name:
+            return True
+    return False
+
+
+def get_course_object(name):
+    # assumes is a valid object
+    global Courses
+    for course in Courses:
+        if course.abbrev == name:
+            return course
+    raise LookupError('Course not cached yet.')
 
 
 if __name__ == '__main__':
