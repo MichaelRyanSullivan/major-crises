@@ -3,7 +3,6 @@
     major. Serializes the resultant dictionary in the data 
     directory.
     """
-import sys
 from bs4 import BeautifulSoup as bs
 import requests as req
 import re
@@ -14,11 +13,12 @@ import _pickle as pickle
 # TODO add major info? - DEPARTMENT!
 i = 1
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
+SEARCH_URL = "guide.berkeley.edu/search"
 MAJORS_PATH = "data/Majors"
 DEPTS_PATH = "data/Depts"
 COURSES_PATH = "data/Courses"
 # Maps department abbreviations to full names.
-dept_dict = {}
+Depts = {}
 # List of all unique Course objects.
 Courses = []
 
@@ -33,7 +33,7 @@ def main():
     pickle.dump(Majors, _file)
     _file.close()
     _file = open(DEPTS_PATH, 'wb')
-    pickle.dump(dept_dict, _file)
+    pickle.dump(Depts, _file)
     _file.close()
     _file = open(COURSES_PATH, 'wb')
     pickle.dump(Courses, _file)
@@ -67,40 +67,53 @@ class Major:
         print(i)
         i += 1
         soup = bs(req.get(self.link).text, "html.parser")
-        courseblocks = soup.find_all('div', class_='courseblock')
-        for course_tag in courseblocks:
-            course_code = course_tag.find('span', class_='code').contents[0]
+        bubblelinks = soup.find_all('a', class_='bubblelink')
+        for bubble in bubblelinks:
+            course_code = bubble['title']
             # formatting the abbreviation uniformly
             course_code = course_code.replace(u'\xa0', u' ')
             course_code = course_code.replace(u'&amp;', u'&')
-            full_name = str(course_tag.find('span', class_='title').contents[0])
-            units = str(course_tag.find('span', class_='hours').contents[0])
+            # FIXME 
+            searchlink = SEARCH_URL + bubble['href']
+            # full_name = str(course_tag.find('span', class_='title').contents[0])
+            # units = str(course_tag.find('span', class_='hours').contents[0])
             if not self.contains_course(course_code):
                 # adds course code to this major
                 self.add_course(course_code)
-                course = Course(course_code, full_name, units)
+                course = Course(course_code, searchlink)
                 if course not in Courses:
                     # adds Course object to Courses
                     Courses.append(course)
-                dept_abbrev = isolate_dept(course_code)
-                if dept_abbrev not in dept_dict:
-                    # adds dept abbreviation to the dictionary
-                    add_dept(dept_abbrev, course_tag)
         return
 
 
 class Course:
-    def __init__(self, abbrev, full_name, units):
+    def __init__(self, abbrev, searchlink):
         self.abbrev = abbrev
-        self.full_name = full_name
-        self.units = units
+        self.serachlink = searchlink
+        self.units = ''
+        self.full_name = ''
         self.dept = isolate_dept(abbrev)
+        self.add_details()
     
     def __str__(self):
         return self.abbrev
     
     def __eq__(self, other):
         return self.abbrev == other.abbrev
+
+    def add_details(self):
+        soup = bs(req.get(self.searchlink).text, "html.parser")
+        h2 = soup.find('div', class_='searchresult').h2.contents[0]
+        # pattern is [abbrev] \n[full name] \n[units]
+        p_details = re.compile("(.*) \n(.*) \n([0-9]+ Units)")
+        m = p_details.match(h2)
+        self.full_name = m.group(1)
+        self.units = m.group(2)
+        # add full department name to Depts
+        if self.dept not in Depts:
+            courseblock = soup.find('div', class_='courseblock')
+            add_dept(self.dept, courseblock)
 
 
 def fill_major_links(url):
@@ -144,7 +157,7 @@ def add_dept(dept_abbrev, course_tag):
             dept_match = p_dept.match(string)
             if dept_match:
                 dept_full = dept_match.group(1)
-                dept_dict[dept_abbrev] = dept_full
+                Depts[dept_abbrev] = dept_full
                 return True
     return False
 
