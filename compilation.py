@@ -211,3 +211,5 @@ def get_course_object(name):
 if __name__ == '__main__':
     start = time.time()
     main()
+    end = time.time()
+    print(end - start)
