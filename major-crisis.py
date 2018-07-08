@@ -51,15 +51,19 @@ def filter_course(majors, course_count, course):
     return
 
 
-def get_course_object(name):
+def get_course_object(name, Courses):
     # FIXME - make this throw error "not a valid abbrevation".
     return
+
+def is_course(name, Courses):
+    """checks NAME (str) against the list of courses COURSES to check if
+    any course has the name NAME. """
 
 
 class CoursePrompt(cmd.Cmd):
     """Prototype command processor.
     Commands: add (course), remove (course),
-    filter (department), majors, courses"""
+    filter (department), majors, courses, change_cap"""
     Majors = load_majors()
     Depts = load_depts()
     Courses = load_courses()
@@ -74,18 +78,19 @@ class CoursePrompt(cmd.Cmd):
     def do_add(self, course):
         """add [course]
         Add the given course to list of courses taken."""
-        # FIXME
+        # FIXME - make sure it is a valid course. update course_count.
         assert (course not in self.courses_taken), "You already added that course!"
         self.course_obj = get_course_object(course)
         self.courses_taken.append(course)
-        self.do_majors("")
+        for major in self.Majors:
+            if major.contains_course(course):
+                self.course_count[major] += 1
         return
 
     def do_remove(self, course):
         """remove [course]
         Remove the given course from the list of courses
         taken. Course must be in the current list."""
-        # FIXME
         assert (course in self.courses_taken), "You haven't added that course!"
         self.courses_taken.remove(course)
         return
@@ -100,15 +105,23 @@ class CoursePrompt(cmd.Cmd):
     def do_courses(self, line):
         """courses
         Displays the current list of courses tracked. """
-        # FIXME
         for course in self.courses_taken:
             print(course)
+        return
 
     def do_filter(self, dept):
         """filter [department abbreviation]
         Filters the list of majors to only have those under
         the given department.  """
         # FIXME - first scrape for department of each major.
+        return
+
+    def do_change_cap(self, num):
+        """change_cap [number]
+        Changes the number of majors displayed by the command
+        'majors' to NUMBER. Default is 10.
+        """
+        self.DISPLAY_CAP = num
         return
 
 
