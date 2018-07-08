@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup as bs
 import requests as req
 import re
 import _pickle as pickle
+import time
 
 
 # TODO differentiate between majors/minors
@@ -65,17 +66,20 @@ class Major:
         global Courses
         global i
         print(i)
+        print(self.name)
         i += 1
         soup = bs(req.get(self.link).text, "html.parser")
         bubblelinks = soup.find_all('a', class_='bubblelink')
         for bubble in bubblelinks:
-            course_code = format_abbrev(bubble['title'])
-            # FIXME 
-
+            try:
+                course_code = format_abbrev(bubble['title'])
+            except KeyError:
+                break
+            # FIXME
             if self.contains_course(course_code):
                 break
             elif is_cached_course(course_code):
-                self.add(course_code)
+                self.add_course(course_code)
             else:
                 searchlink = SEARCH_URL + bubble['href']
                 self.add_course(course_code)
@@ -100,8 +104,6 @@ class Course:
         return self.abbrev == other.abbrev
 
     def add_details(self):
-        print(self.abbrev)
-        print(self.searchlink)
         soup = bs(req.get(self.searchlink).text, "html.parser")
         # h2 = soup.find('div', class_='searchresults').h2.contents[0]
         results = soup.find_all('div', class_='searchresult')
@@ -112,7 +114,7 @@ class Course:
             m = p_details.match(h2)
             if m:
                 abbrev = format_abbrev(m.group(1))
-                if not abbrev == self.abbrev:
+                if not abbrev ==  self.abbrev:
                     break
                 self.full_name = m.group(2)
                 self.units = m.group(3)
@@ -183,6 +185,7 @@ def isolate_dept(course_code):
 def format_abbrev(abbrev):
     formatted = abbrev.replace(u'\xa0', u' ')
     formatted = formatted.replace(u'&amp;', u'&')
+    formatted = formatted.replace(u'$nbsp;', u' ')
     return formatted
 
 
@@ -206,4 +209,5 @@ def get_course_object(name):
 
 
 if __name__ == '__main__':
+    start = time.time()
     main()
