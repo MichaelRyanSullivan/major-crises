@@ -66,8 +66,7 @@ class Major:
         global i
         print(i)
         i += 1
-        url = self.link
-        soup = bs(req.get(url).text, "html.parser")
+        soup = bs(req.get(self.link).text, "html.parser")
         courseblocks = soup.find_all('div', class_='courseblock')
         for course_tag in courseblocks:
             course_code = course_tag.find('span', class_='code').contents[0]
@@ -122,7 +121,7 @@ def fill_major_links(url):
     assert(len(names) == len(urls))
     Majors = []
     for i in range(len(names)):
-        link = url + urls[i] + "/"
+        link = url + urls[i] + "/#majorrequirementstext"
         Majors.append(Major(names[i], link))
     return Majors
 
