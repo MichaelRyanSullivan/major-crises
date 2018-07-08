@@ -38,7 +38,7 @@ def main():
     _file = open(COURSES_PATH, 'wb')
     pickle.dump(Courses, _file)
     _file.close()
-    pass
+    return
 
 
 class Major:

@@ -13,7 +13,7 @@ def main():
     prompt = CoursePrompt()
     prompt.cmdloop
 
-    pass
+    return
 
 
 def load_majors():
@@ -48,12 +48,12 @@ def filter_course(majors, course_count, course):
     # corresponding COURSE_COUNT dict value if COURSE (a string) is a course
     # in the Major object.
     # FIXME
-    pass
+    return
 
 
 def get_course_object(name):
     # FIXME - make this throw error "not a valid abbrevation".
-    pass
+    return
 
 
 class CoursePrompt(cmd.Cmd):
@@ -75,41 +75,41 @@ class CoursePrompt(cmd.Cmd):
         """add [course]
         Add the given course to list of courses taken."""
         # FIXME
-        if course in self.courses_taken:
-            # raise some error about it being there
-            return
-        else:
-            self.course_obj = get_course_object(course)
-            self.courses_taken.append(course)
-            self.do_display()
-        pass
+        assert (course not in self.courses_taken), "You already added that course!"
+        self.course_obj = get_course_object(course)
+        self.courses_taken.append(course)
+        self.do_majors("")
+        return
 
     def do_remove(self, course):
         """remove [course]
         Remove the given course from the list of courses
         taken. Course must be in the current list."""
         # FIXME
-        pass
+        assert (course in self.courses_taken), "You haven't added that course!"
+        self.courses_taken.remove(course)
+        return
 
-    def do_majors(self):
+    def do_majors(self, line):
         """majors
         Displays the current sorted list of majors. """
-        # FIXME
-        pass
+        for i in range(self.DISPLAY_CAP):
+            print(self.Majors[i])
+        return
 
-    def do_courses(self):
+    def do_courses(self, line):
         """courses
         Displays the current list of courses tracked. """
         # FIXME
         for course in self.courses_taken:
-            print(course + "\n") 
+            print(course)
 
     def do_filter(self, dept):
         """filter [department abbreviation]
         Filters the list of majors to only have those under
         the given department.  """
         # FIXME - first scrape for department of each major.
-        pass
+        return
 
 
 if __name__ == '__main__':
