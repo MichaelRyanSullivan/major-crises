@@ -4,6 +4,8 @@ course list."""
 import _pickle as pickle
 import compilation
 import cmd
+from compilation import Major
+from compilation import Course
 
 
 def main():
@@ -57,7 +59,7 @@ def get_course_object(name):
 class CoursePrompt(cmd.Cmd):
     """Prototype command processor.
     Commands: add (course), remove (course),
-    filter (department), display """
+    filter (department), majors, courses"""
     Majors = load_majors()
     Depts = load_depts()
     Courses = load_courses()
@@ -89,11 +91,18 @@ class CoursePrompt(cmd.Cmd):
         # FIXME
         pass
 
-    def do_display(self):
-        """display
+    def do_majors(self):
+        """majors
         Displays the current sorted list of majors. """
         # FIXME
         pass
+
+    def do_courses(self):
+        """courses
+        Displays the current list of courses tracked. """
+        # FIXME
+        for course in self.courses_taken:
+            print(course + "\n") 
 
     def do_filter(self, dept):
         """filter [department abbreviation]
@@ -105,4 +114,3 @@ class CoursePrompt(cmd.Cmd):
 
 if __name__ == '__main__':
     CoursePrompt().cmdloop()
-    
