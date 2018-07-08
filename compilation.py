@@ -51,11 +51,11 @@ class Major:
         return self.name
 
     def contains_course(self, course):
-        # COURSE must be a proper course abbreviation.
+        # COURSE (str) must be a proper course abbreviation.
         return course in self.courses
 
     def add_course(self, course):
-        # COURSE must be a proper course abbreviation.
+        # COURSE (str) must be a proper course abbreviation.
         assert course not in self.courses
         self.courses.append(course)
 
@@ -98,7 +98,7 @@ class Course:
         self.dept = isolate_dept(abbrev)
     
     def __str__(self):
-        return "abbrev: " + self.abbrev + "\nfull name: " + self.full_name + "\nunits: " + self.units
+        return self.abbrev
     
     def __eq__(self, other):
         return self.abbrev == other.abbrev
