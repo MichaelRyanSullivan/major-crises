@@ -86,7 +86,8 @@ Courses = load_courses()
 class CoursePrompt(cmd.Cmd):
     """Prototype command processor.
     Commands: add (course), remove (course),
-    filter (department), show_majors, show_courses, change_cap"""
+    filter (department), show_majors, show_courses, change_cap,
+    clear"""
     global Majors
     # run-time count of the number of courses from each major
     # the user has taken.
@@ -157,7 +158,7 @@ class CoursePrompt(cmd.Cmd):
         Changes the number of majors displayed by the command
         'majors' to NUMBER. Default is 10.
         """
-        self.DISPLAY_CAP = num
+        self.DISPLAY_CAP = int(num)
         return
 
 
