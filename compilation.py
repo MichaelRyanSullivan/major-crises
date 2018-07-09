@@ -69,15 +69,16 @@ class Major:
         print(self.name)
         i += 1
         soup = bs(req.get(self.link).text, "html.parser")
-        bubblelinks = soup.find_all('a', class_='bubblelink')
-        for bubble in bubblelinks:
+        bubblelinks = soup.find_all('a', class_='bubblelink code')
+        for j in range(len(bubblelinks)):
+            bubble = bubblelinks[j]
             try:
                 course_code = format_abbrev(bubble['title'])
             except KeyError:
-                break
+                continue
             # FIXME
             if self.contains_course(course_code):
-                break
+                continue
             elif is_cached_course(course_code):
                 self.add_course(course_code)
             else:
@@ -85,6 +86,7 @@ class Major:
                 self.add_course(course_code)
                 course = Course(course_code, searchlink)
                 Courses.append(course)
+        print(self.courses)
         return
 
 
