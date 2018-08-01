@@ -1,0 +1,13 @@
+$def with (majors, major_tracker)
+$#assumes majors is properly sorted
+<table>
+    <tr>
+        <th> Major </th>
+        <th> # of Courses Fulfilled </th>
+    </tr>
+    $for major in major_tracker:
+        <tr>
+            <td> $major.name </td>
+            <td> $major_tracker[major] </td>
+        </tr>
+</table>
