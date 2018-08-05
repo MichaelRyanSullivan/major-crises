@@ -1,11 +1,17 @@
-$def with (majors, major_tracker)
+$def with (sorted_majors, major_tracker)
 $#assumes majors is properly sorted
+
+<form method="post" action="add">
+    <p><input type="text" name="major_name" /> 
+    <input type="submit" value="Add" /></p>
+</form>
+
 <table>
     <tr>
         <th> Major </th>
         <th> # of Courses Fulfilled </th>
     </tr>
-    $for major in major_tracker:
+    $for major in sorted_majors:
         <tr>
             <td> $major.name </td>
             <td> $major_tracker[major] </td>

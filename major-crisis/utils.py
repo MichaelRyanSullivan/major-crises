@@ -48,6 +48,7 @@ def get_major_object(name, Majors):
 
 def get_course_object(name, Courses):
     # assumes is a valid object
+    print(name)
     for course in Courses:
         if course.abbrev == name:
             return course
