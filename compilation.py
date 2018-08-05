@@ -11,7 +11,8 @@ import time
 
 
 # TODO differentiate between majors/minors
-# TODO add major info? - DEPARTMENT!
+# TODO add major info? - DEPARTMENT! AND collEGE
+# TODO FIGURE OUT HOW TO DO 
 i = 1
 URL = "http://guide.berkeley.edu/undergraduate/degree-programs/"
 SEARCH_URL = "http://guide.berkeley.edu/"
