@@ -44,7 +44,6 @@ def add_course(course, major_tracker, courses_taken):
 
 class index:
     def GET(self):
-        # FIXME - sort Majors list
         sorted_majors = sorted(major_tracker, key=major_tracker.__getitem__, reverse=True)
         return render.index(sorted_majors, major_tracker)
         

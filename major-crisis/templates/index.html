@@ -1,4 +1,4 @@
-$def with (sorted_majors, major_tracker)
+$def with (sorted_majors, major_tracker, cap)
 $#assumes majors is properly sorted
 
 <form method="post" action="add">
@@ -11,7 +11,8 @@ $#assumes majors is properly sorted
         <th> Major </th>
         <th> # of Courses Fulfilled </th>
     </tr>
-    $for major in sorted_majors:
+    $for i in range(cap):
+        $major = sorted_majors[i]
         <tr>
             <td> $major.name </td>
             <td> $major_tracker[major] </td>
