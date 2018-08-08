@@ -12,9 +12,10 @@ $#assumes majors is properly sorted
         <th> # of Courses Fulfilled </th>
     </tr>
     $for i in range(cap):
-        $major = sorted_majors[i]
+        $ major = sorted_majors[i]
         <tr>
             <td> $major.name </td>
             <td> $major_tracker[major] </td>
         </tr>
 </table>
+

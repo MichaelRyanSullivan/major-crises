@@ -7,7 +7,8 @@ from compilation import Course
 
 urls = (
     '/', 'index',
-    '/add', 'add'
+    '/add', 'add',
+    '/reset', 'reset'
     )
 
 render = web.template.render('templates')
@@ -44,8 +45,9 @@ def add_course(course, major_tracker, courses_taken):
 
 class index:
     def GET(self):
+        cap = 10
         sorted_majors = sorted(major_tracker, key=major_tracker.__getitem__, reverse=True)
-        return render.index(sorted_majors, major_tracker)
+        return render.index(sorted_majors, major_tracker, cap)
         
 class add:
     def POST(self):
@@ -53,6 +55,11 @@ class add:
         i = web.input()
         add_course(i.major_name, major_tracker, courses_taken)
         raise web.seeother('/')
+
+class reset:
+    def POST(self):
+        #FIXME - reset courses_taken, sorted_majors, major_tracker
+        
 
 
 if __name__ == "__main__":
